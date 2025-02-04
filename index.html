@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #1a1a1a;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        h1 {
+            color: #fff;
+            text-shadow: 0 0 10px white, 0 0 20px white, 0 0 30px white;
+        }
+        .game-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            position: relative;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            border-radius: 15px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .cell.taken {
+            cursor: not-allowed;
+        }
+        .cell.x {
+            box-shadow: 0 0 20px red;
+            animation: breathing-x 1.5s ease-in-out infinite;
+        }
+        .cell.o {
+            box-shadow: 0 0 20px blue;
+            animation: breathing-o 1.5s ease-in-out infinite;
+        }
+        @keyframes breathing-x {
+            0% { box-shadow: 0 0 20px 5px red; }
+            50% { box-shadow: 0 0 30px 10px red; }
+            100% { box-shadow: 0 0 20px 5px red; }
+        }
+        @keyframes breathing-o {
+            0% { box-shadow: 0 0 20px 5px blue; }
+            50% { box-shadow: 0 0 30px 10px blue; }
+            100% { box-shadow: 0 0 20px 5px blue; }
+        }
+        #status {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 15px;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        .input-container {
+            margin-bottom: 10px;
+        }
+        input {
+            padding: 10px;
+            margin: 5px;
+            font-size: 1em;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            width: 200px;
+            text-align: center;
+        }
+        .light-mode input {
+            background-color: white;
+            color: black;
+            border: 2px solid #333;
+        }
+        .light-mode {
+            background-color: #fff;
+            color: #000;
+        }
+        .light-mode h1 {
+            color: #000;
+            text-shadow: none;
+        }
+        .light-mode button {
+            background-color: #f0f0f0;
+            color: #000;
+        }
+        .light-mode button:hover {
+            background-color: #ddd;
+        }
+        .light-mode .cell {
+            background: rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(0, 0, 0, 0.5);
+        }
+        .win-line {
+            position: absolute;
+            background-color: red;
+            height: 5px;
+            width: 0;
+            transition: width 1s ease-in-out, opacity 1s ease-in-out;
+            transform-origin: center;
+            display: none;
+            border-radius: 2px;
+        }
+        @keyframes drawLine {
+            0% { width: 0; opacity: 0; }
+            100% { width: 100%; opacity: 1; }
+        }
+        .toggle-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background-color: #ccc;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .toggle-switch .toggle-circle {
+            position: absolute;
+            top: 50%;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background-color: #fff;
+            border-radius: 50%;
+            transform: translateY(-50%);
+            transition: left 0.3s;
+        }
+        .light-mode .toggle-switch {
+            background-color: #000;
+        }
+        .light-mode .toggle-circle {
+            left: 33px;
+        }
+        .language-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .language-container select {
+            padding: 5px;
+            font-size: 1em;
+            border-radius: 15px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+        .light-mode .language-container select {
+            background-color: white;
+            color: black;
+            border: 2px solid #333;
+        }
+        @media (max-width: 600px) {
+            .board {
+                grid-template-columns: repeat(3, 80px);
+                grid-template-rows: repeat(3, 80px);
+            }
+            .cell {
+                width: 80px;
+                height: 80px;
+                font-size: 1.5em;
+            }
+            input {
+                width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 id="gameTitle">Tic Tac Toe</h1>
+    
+    <div class="language-container">
+        <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="hi">हिंदी (Hindi)</option>
+            <option value="bn">বাংলা (Bengali)</option>
+        </select>
+    </div>
+
+    <div class="input-container">
+        <input type="text" id="playerX" placeholder="Enter Player X Name">
+        <input type="text" id="playerO" placeholder="Enter Player O Name">
+    </div>
+    <button id="startGame">Start Game</button>
+
+    <div class="game-container" style="display: none;">
+        <div class="board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        <p id="status"></p>
+        <button id="restart">Restart Game</button>
+        <div class="win-line" id="winLine"></div>
+    </div>
+
+    <div class="toggle-container">
+        <div class="toggle-switch" id="toggleMode">
+            <div class="toggle-circle"></div>
+        </div>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                gameTitle: "Tic Tac Toe",
+                playerXPlaceholder: "Enter Player X Name",
+                playerOPlaceholder: "Enter Player O Name",
+                startGame: "Start Game",
+                restartGame: "Restart Game",
+                xTurn: "'s turn",
+                oTurn: "'s turn",
+                xWins: " Wins!",
+                oWins: " Wins!",
+                tie: "It's a Tie!",
+            },
+            hi: {
+                gameTitle: "टिक टैक टो",
+                playerXPlaceholder: "खिलाड़ी X का नाम दर्ज करें",
+                playerOPlaceholder: "खिलाड़ी O का नाम दर्ज करें",
+                startGame: "खेल शुरू करें",
+                restartGame: "खेल फिर से शुरू करें",
+                xTurn: " की बारी",
+                oTurn: " की बारी",
+                xWins: " जीत गया!",
+                oWins: " जीत गया!",
+                tie: "यह एक ड्रॉ है!",
+            },
+            bn: {
+                gameTitle: "টিক ট্যাক টো",
+                playerXPlaceholder: "প্লেয়ার X এর নাম লিখুন",
+                playerOPlaceholder: "প্লেয়ার O এর নাম লিখুন",
+                startGame: "খেলা শুরু করুন",
+                restartGame: "খেলা পুনরায় শুরু করুন",
+                xTurn: " এর পালা",
+                oTurn: " এর পালা",
+                xWins: " জিতেছে!",
+                oWins: " জিতেছে!",
+                tie: "এটি একটি ড্র!",
+            },
+        };
+
+        let currentLanguage = "en";
+        let gameState = {
+            currentPlayer: 'X',
+            playerX: 'Player X',
+            playerO: 'Player O',
+            gameActive: false
+        };
+
+        // Theme persistence
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+        }
+
+        function updateLanguage(lang) {
+            const translation = translations[lang];
+            document.getElementById("gameTitle").textContent = translation.gameTitle;
+            document.getElementById("playerX").placeholder = translation.playerXPlaceholder;
+            document.getElementById("playerO").placeholder = translation.playerOPlaceholder;
+            document.getElementById("startGame").textContent = translation.startGame;
+            document.getElementById("restart").textContent = translation.restartGame;
+
+            const statusText = document.getElementById("status");
+            if (statusText && gameState.gameActive) {
+                const currentPlayer = gameState.currentPlayer;
+                const playerName = currentPlayer === 'X' ? gameState.playerX : gameState.playerO;
+                statusText.textContent = playerName + translation[currentPlayer === 'X' ? 'xTurn' : 'oTurn'];
+            }
+        }
+
+        document.getElementById("languageSelect").addEventListener("change", (event) => {
+            currentLanguage = event.target.value;
+            updateLanguage(currentLanguage);
+        });
+
+        document.getElementById("toggleMode").addEventListener("click", () => {
+            document.body.classList.toggle("light-mode");
+            localStorage.setItem('theme', document.body.classList.contains("light-mode") ? 'light' : 'dark');
+        });
+
+        document.getElementById("startGame").addEventListener("click", () => {
+            const playerXName = document.getElementById("playerX").value.trim() || "Player X";
+            const playerOName = document.getElementById("playerO").value.trim() || "Player O";
+            document.querySelector(".input-container").style.display = "none";
+            document.querySelector("#startGame").style.display = "none";
+            document.querySelector(".game-container").style.display = "flex";
+            startGame(playerXName, playerOName);
+        });
+
+        function startGame(playerX, playerO) {
+            const cells = document.querySelectorAll(".cell");
+            const statusText = document.getElementById("status");
+            const restartButton = document.getElementById("restart");
+            const winLine = document.getElementById("winLine");
+
+            let board = ["", "", "", "", "", "", "", "", ""];
+            gameState = {
+                currentPlayer: "X",
+                playerX: playerX,
+                playerO: playerO,
+                gameActive: true
+            };
+
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+
+            function handleCellClick(event) {
+                const index = event.target.getAttribute("data-index");
+                if (board[index] !== "" || !gameState.gameActive) return;
+
+                board[index] = gameState.currentPlayer;
+                event.target.textContent = gameState.currentPlayer;
+                event.target.classList.add("taken", gameState.currentPlayer.toLowerCase());
+
+                if (checkWinner()) {
+                    const winnerName = gameState.currentPlayer === "X" ? playerX : playerO;
+                    statusText.textContent = winnerName + translations[currentLanguage][gameState.currentPlayer === "X" ? "xWins" : "oWins"];
+                    drawWinningLine(gameState.currentPlayer === "X" ? "red" : "blue");
+                    gameState.gameActive = false;
+                    return;
+                }
+
+                if (!board.includes("")) {
+                    statusText.textContent = translations[currentLanguage].tie;
+                    gameState.gameActive = false;
+                    return;
+                }
+
+                gameState.currentPlayer = gameState.currentPlayer === "X" ? "O" : "X";
+                statusText.textContent = (gameState.currentPlayer === "X" ? playerX : playerO) + 
+                    translations[currentLanguage][gameState.currentPlayer === "X" ? "xTurn" : "oTurn"];
+            }
+
+            function checkWinner() {
+                return winPatterns.some(pattern => {
+                    if (pattern.every(index => board[index] === gameState.currentPlayer)) {
+                        winLine.dataset.pattern = pattern.join(",");
+                        return true;
+                    }
+                    return false;
+                });
+            }
+
+            function drawWinningLine(color) {
+                const pattern = winLine.dataset.pattern.split(",").map(Number);
+                const [first, , last] = pattern.map(index => 
+                    document.querySelector(.cell[data-index="${index}"]).getBoundingClientRect()
+                );
+
+                const boardRect = document.querySelector(".board").getBoundingClientRect();
+                const centerX1 = first.left + first.width/2 - boardRect.left;
+                const centerY1 = first.top + first.height/2 - boardRect.top;
+                const centerX2 = last.left + last.width/2 - boardRect.left;
+                const centerY2 = last.top + last.height/2 - boardRect.top;
+
+                const angle = Math.atan2(centerY2 - centerY1, centerX2 - centerX1) * 180 / Math.PI;
+                const length = Math.hypot(centerX2 - centerX1, centerY2 - centerY1);
+
+                winLine.style.width = ${length}px;
+                winLine.style.top = ${(centerY1 + centerY2)/2}px;
+                winLine.style.left = ${(centerX1 + centerX2)/2}px;
+                winLine.style.transform = translate(-50%, -50%) rotate(${angle}deg);
+                winLine.style.backgroundColor = color;
+                winLine.style.display = "block";
+                winLine.style.animation = "drawLine 0.5s forwards";
+            }
+
+            function restartGame() {
+                board = ["", "", "", "", "", "", "", "", ""];
+                gameState.gameActive = true;
+                gameState.currentPlayer = "X";
+                statusText.textContent = playerX + translations[currentLanguage].xTurn;
+                winLine.style.display = "none";
+                winLine.dataset.pattern = "";
+                
+                cells.forEach(cell => {
+                    cell.textContent = "";
+                    cell.classList.remove("taken", "x", "o");
+                });
+            }
+
+            cells.forEach(cell => cell.addEventListener("click", handleCellClick));
+            restartButton.addEventListener("click", restartGame);
+            statusText.textContent = playerX + translations[currentLanguage].xTurn;
+        }
+
+        // Initial setup
+        updateLanguage(currentLanguage);
+    </script>
+</body>
+</html>
